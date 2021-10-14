@@ -12,7 +12,7 @@ function getEmployeeData($file)
   while(!feof($myfile)) {
     $str = fgets($myfile);
     $employeeDateArray = explode(",",$str);
-    $lineArray = array('name' => $employeeDateArray[0], 'birthDay' => $employeeDateArray[1]);
+    $lineArray = array('name' => $employeeDateArray[0], 'birthDay' => isset($employeeDateArray[1]) ? $employeeDateArray[1] : null);
 
     yield $lineArray;
     
@@ -79,37 +79,64 @@ function getEmployeeData($file)
 
 function birthdayMatch($line)
 {
- $pat = "06-25";
- $pattern = "/".$pat."/i";
+ $patArray = datePattern();
  $birthDate = $line['birthDay'];
  $dateOfBirth = new \DateTime($birthDate);
  $dateOfBirth = $dateOfBirth->format('m-d');
-  if (preg_match_all($pattern, $dateOfBirth)){
-      echo $line['name']. " date of birth " .$line['birthDay'];
-    }
+  if (in_array($dateOfBirth, $patArray)){
+    $str1 = $line['name'];
+    $str2 = $line['birthDay'];
+    dispalyMatch($str1, $str2); 
+  }
+    
 }
 
-// function datePattern(){
-//   $myfile = fopen("file.txt", "r") or die("Unable to open file!");
-// // Output one line until end-of-file
-// while(!feof($myfile)) {
-//   $str = fgets($myfile);
-//   $employeeDateArray = explode(",",$str);
-//   $birthDate = $employeeDateArray['1'];
-//   $dateOfBirth = new \DateTime($birthDate);
-//   $dateOfBirth = $dateOfBirth->format('m-d');
-//   yield $dateOfBirth;
+function dispalyMatch($output1, $output2){
+     echo $output1. $output2;
+}
 
-// }
-// fclose($myfile);
-// }
+function datePattern(){
+  $file = 'file.txt';
+  $myfile = fopen($file, "r") or die("Unable to open file!");
+  $dupPat = [];
+// Output one line until end-of-file
+while(!feof($myfile)) {
+  $str = fgets($myfile);
+  $employeeDateArray = explode(",",$str);
+  $birthDate = isset($employeeDateArray[1]) ? $employeeDateArray[1] : null;
+  $dateOfBirth = new \DateTime($birthDate);
+  $dateOfBirth = $dateOfBirth->format('m-d');
+  $dupPat [] = $dateOfBirth;
+
+}
+fclose($myfile);
+//var_dump($dupPat);
+$array_temp = array();
+$patDupReturn = array();
+   foreach($dupPat as $val)
+   {
+     if (!in_array($val, $array_temp))
+     {
+       $array_temp[] = $val;
+     }
+     else
+     {
+      $patDupReturn [] = $val;
+     }
+   }
+   return $patDupReturn;
+   //var_dump($patDupReturn);
+}
 
 //$file = 'file.txt';
 $lineGenerator = getEmployeeData($file);
 foreach ($lineGenerator as $line) {
   birthdayMatch($line);
+  
    //var_dump($line);
 }
+
+//datePattern();
 
 /************** This works Iterator ****************** */
 // $fileInfo = new SplFileInfo($file);
